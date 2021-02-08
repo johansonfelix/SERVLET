@@ -1,7 +1,4 @@
-import com.sun.javafx.collections.MappingChange;
 import impl.Artists;
-
-
 
 import pojo.Artist;
 
@@ -18,7 +15,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-@WebServlet(name = "Artists", urlPatterns = "/artists")
+@WebServlet(name = "Artists", urlPatterns = "/artist")
 public class ArtistsREST extends HttpServlet {
 
     Artists artistList;

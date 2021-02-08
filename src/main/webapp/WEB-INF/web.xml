@@ -10,7 +10,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>Artists</servlet-name>
-        <url-pattern>/artists</url-pattern>
+        <url-pattern>/artist</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>ArtistsREST</welcome-file>
