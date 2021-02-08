@@ -39,6 +39,8 @@
           <element id="archive" name="CORE-1.0-SNAPSHOT.jar">
             <element id="module-output" name="CORE" />
           </element>
+          <element id="library" level="project" name="Maven: com.google.collections:google-collections:1.0" />
+          <element id="library" level="project" name="Maven: com.google:google:1" />
         </element>
       </element>
       <element id="directory" name="META-INF">
