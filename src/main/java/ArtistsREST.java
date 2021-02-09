@@ -9,9 +9,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import java.util.stream.Collectors;
 
-@WebServlet(name = "Artists", urlPatterns = "/artists")
+@WebServlet(name = "Artists", urlPatterns = "/artist")
 public class ArtistsREST extends HttpServlet {
 
     Artists artistList;
@@ -36,20 +37,20 @@ public class ArtistsREST extends HttpServlet {
                     artistList.addArtist(new Artist(firstname, lastname, nickname, bio));
                 }
                 else{
-                    //error handling
+                    out.println("Invalid Parameters.");
+                    throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
                 }
             }
             else{
-                //some error handling
+                out.println("Invalid Parameters.");
                 throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
             }
-            //Success message
+
             out.println("Artist was added successfully.");
             out.flush();
         }
         catch (IOException e){
-            //some error handling
-            e.getMessage();
+            throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
@@ -63,8 +64,7 @@ public class ArtistsREST extends HttpServlet {
                     out.flush();
                 }
                 catch (IOException e){
-                    //some error handling
-                    e.getMessage();
+                    throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
                 }
             }
             if(getType.equals("artist")){
@@ -79,20 +79,20 @@ public class ArtistsREST extends HttpServlet {
                         out.flush();
                     }
                     catch (IOException e){
-                        //some error handling
-                        e.getMessage();
+                        throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
                     }
                 }
                 else{
-                    //error handling
+                    throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
                 }
             }
             else{
-                //error handling
+                throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
             }
         }
         else{
-            //error handling
+            PrintWriter out = response.getWriter();
+            out.println("Service Active.");
         }
     }
     @Override
