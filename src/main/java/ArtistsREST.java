@@ -1,22 +1,15 @@
-import com.sun.javafx.collections.MappingChange;
 import impl.Artists;
-
-
-
+import org.json.JSONObject;
 import pojo.Artist;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @WebServlet(name = "Artists", urlPatterns = "/artists")
 public class ArtistsREST extends HttpServlet {
@@ -29,12 +22,12 @@ public class ArtistsREST extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        String nickname = request.getParameter("nickname");
-        String firstname = request.getParameter("firstname");
-        String lastname = request.getParameter("lastname");
-        String bio = request.getParameter("bio");
-
+        String jsonString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        String nickname = jsonObject.getString("nickname");
+        String firstname = jsonObject.getString("firstName");
+        String lastname = jsonObject.getString("lastName");
+        String bio = jsonObject.getString("bio");
         try (PrintWriter out = response.getWriter()) {
 
             if((nickname!=null && firstname!=null && lastname!=null)||bio!=null){
@@ -50,11 +43,9 @@ public class ArtistsREST extends HttpServlet {
                 //some error handling
                 throw new HTTPException (HttpServletResponse.SC_BAD_REQUEST);
             }
-
             //Success message
-            out.println(artistList.getArtist(nickname));
+            out.println("Artist was added successfully.");
             out.flush();
-
         }
         catch (IOException e){
             //some error handling
@@ -65,14 +56,12 @@ public class ArtistsREST extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String getType = request.getParameter("get");
-
         if(getType!=null){
             if (getType.equals("all")){
                 try (PrintWriter out = response.getWriter()) {
                     out.println(artistList.toString());
                     out.flush();
                 }
-
                 catch (IOException e){
                     //some error handling
                     e.getMessage();
@@ -83,19 +72,16 @@ public class ArtistsREST extends HttpServlet {
                 if(nickname!=null){
                     try (PrintWriter out = response.getWriter()) {
 
-                        if(artistList.getArtist(nickname)!=null)
+                        if(artistList.artistExists(nickname))
                             out.println(artistList.getArtist(nickname).toString());
                         else
                             out.println("Artist does not exist!");
-
                         out.flush();
                     }
-
                     catch (IOException e){
                         //some error handling
                         e.getMessage();
                     }
-
                 }
                 else{
                     //error handling
@@ -108,114 +94,60 @@ public class ArtistsREST extends HttpServlet {
         else{
             //error handling
         }
-
-
-
-
     }
-
-
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-
-        Map<String, String>  map = getParameterMap(request);
-
-        if(map!=null) {
-
-            String update = map.get("update");
-
-            switch (update) {
-                case "firstname": {
-                    String firstname = map.get("firstname");
-                    String nickname = map.get("nickname");
-                    artistList.getArtist(nickname).setFirstName(firstname);
-                    break;
-
-                }
-                case "lastname": {
-                    String lastname = map.get("lastname");
-                    String nickname = map.get("nickname");
-                    artistList.getArtist(nickname).setLastName(lastname);
-                    break;
-                }
-
-                case "bio": {
-                    String bio = map.get("bio");
-                    String nickname = map.get("bio");
-                    artistList.getArtist(nickname).setBio(bio);
-                    break;
-                }
-                case "all": {
-                    String firstname = map.get("firstname");
-                    String lastname = map.get("lastname");
-                    String bio = map.get("bio");
-                    String nickname = map.get("nickname");
-                    artistList.getArtist(nickname).setFirstName(firstname);
-                    artistList.getArtist(nickname).setLastName(lastname);
-                    artistList.getArtist(nickname).setBio(bio);
-                }
-
-            }
-        }
-
-
-
-
+        String jsonString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        String nickname = jsonObject.getString("nickname");
+        Artist artistToUpdate = null;
         PrintWriter out = response.getWriter();
-        out.println("Artist Updated");
-        System.out.println(map.entrySet());
-        out.println(map.entrySet());
-        out.flush();
-    }
-    // /nickname=##&firstname=##&lastname=##&bio=##
-    public static Map<String, String> getParameterMap(HttpServletRequest request){
-
-        Map<String, String> parameters;
-        BufferedReader br;
-
-        try{
-
-            br = new BufferedReader(new InputStreamReader(request.getInputStream()));
-
-            String data = br.readLine();
-            System.out.println(data);
-
-            String[] args = data.split("&");
-            System.out.println(args[0]);
-          parameters = new HashMap<>();
-
-            for(String s : args){
-
-                String[] strings = s.split("=");
-                System.out.println("here 1");
-                parameters.put(strings[0], strings[1]);
-
+        if(artistList.artistExists(nickname)) {
+            artistToUpdate = artistList.getArtist(nickname);
+            String attribute = jsonObject.getString("attribute");
+            if(attribute.equals("all")){
+                artistToUpdate.setFirstName(jsonObject.getString("newFirstName"));
+                artistToUpdate.setLastName(jsonObject.getString("newLastName"));
+                artistToUpdate.setBio(jsonObject.getString("newBio"));
             }
-
-            return parameters;
-
+            else {
+                String newValue = jsonObject.getString("newValue");
+                switch (attribute) {
+                    case "firstName": {
+                        artistToUpdate.setFirstName(newValue);
+                        break;
+                    }
+                    case "lastName": {
+                        artistToUpdate.setLastName(newValue);
+                        break;
                     }
 
-        catch (IOException e){
-            System.out.println("ERROR!");
+                    case "bio": {
+                        artistToUpdate.setBio(newValue);
+                        break;
+                    }
+                }
+            }
+            out.println("Artist Updated. New values:");
+            out.println(artistToUpdate.toString());
         }
-
-        return null;
+        else{
+            out.println("Could not update artist. Reason: That artist does not exist.");
+        }
+        System.out.println(artistToUpdate.toString());
+        out.flush();
     }
-
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        Map<String, String>  map = getParameterMap(request);
-
-        if(map!=null) {
-
-            String nickname = map.get("nickname");
+        String nickname = request.getParameter("nickname");
+        PrintWriter out = response.getWriter();
+        if(artistList.artistExists(nickname)){
             artistList.deleteArtist(nickname);
-
+            out.println("Artist deleted successfully.");
         }
-
-
+        else{
+            out.println("That artist does not exist.");
+        }
+        out.flush();
     }
 }
